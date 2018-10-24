@@ -25,6 +25,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
+	"github.com/ontio/ontology-crypto/abls"
 	"github.com/ontio/ontology-crypto/ec"
 
 	"golang.org/x/crypto/ed25519"
@@ -107,6 +108,9 @@ func EncryptWithCustomScrypt(pri PrivateKey, addr string, pwd []byte, param *Scr
 	case ed25519.PrivateKey:
 		plaintext = []byte(t)
 		res.Alg = "Ed25519"
+	case abls.PrivateKey:
+		plaintext = []byte(t)
+		res.Alg = "BN256"
 	default:
 		panic("unsupported key type")
 	}
@@ -185,6 +189,12 @@ func DecryptWithCustomScrypt(prot *ProtectedKey, pwd []byte, param *ScryptParam)
 			return nil, NewDecryptError("invalid Ed25519 private key length")
 		}
 		return ed25519.PrivateKey(plaintext), nil
+	case "BN256":
+		// if len(plaintext) != abls.PrivateKeySize {
+		// 	return nil, NewDecryptError("invalid Ed25519 private key length")
+		// }
+		return abls.PrivateKey(plaintext), nil
+
 	default:
 		return nil, NewDecryptError("unknown key type")
 	}

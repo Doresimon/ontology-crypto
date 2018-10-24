@@ -29,6 +29,7 @@ import (
 
 	"golang.org/x/crypto/ed25519"
 
+	"github.com/ontio/ontology-crypto/abls"
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/sm2"
 )
@@ -110,6 +111,13 @@ func Sign(scheme SignatureScheme, pri crypto.PrivateKey, msg []byte, opt interfa
 		}
 		res.Value = ed25519.Sign(key, msg)
 
+	case abls.PrivateKey:
+		// if scheme != SHA512withEDDSA {
+		// 	err = errors.New("signing failed: unmatched signature scheme and private key")
+		// 	return
+		// }
+		res.Value, _ = key.Sign(msg)
+
 	default:
 		err = errors.New("signing failed: unknown type of private key")
 		return
@@ -152,6 +160,12 @@ func Verify(pub crypto.PublicKey, msg []byte, sig *Signature) bool {
 			v := sig.Value.([]byte)
 			res = ed25519.Verify(key, msg, v)
 		}
+
+	case abls.PublicKey:
+		// if sig.Scheme == SHA512withEDDSA {
+		v := sig.Value.([]byte)
+		res = key.Verify(msg, v)
+		// }
 	}
 
 	return res
@@ -187,6 +201,7 @@ func Serialize(sig *Signature) ([]byte, error) {
 			sig.Scheme != SHA3_256withECDSA &&
 			sig.Scheme != SHA3_384withECDSA &&
 			sig.Scheme != SHA3_512withECDSA &&
+			sig.Scheme != SOLOBLS &&
 			sig.Scheme != RIPEMD160withECDSA {
 			return nil, errors.New("failed serializing signature: unmatched signature scheme and value")
 		}
@@ -259,6 +274,10 @@ func Deserialize(buf []byte) (*Signature, error) {
 	case SHA512withEDDSA:
 		val := make([]byte, len(data))
 		copy(val, data)
+		sig.Value = val
+	case SOLOBLS:
+		val := make([]byte, len(data))
+		copy(val, data[:])
 		sig.Value = val
 	default:
 		return nil, errors.New(e + "unknown signature scheme")

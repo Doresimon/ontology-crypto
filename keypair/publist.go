@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"sort"
 
+	"github.com/ontio/ontology-crypto/abls"
 	"github.com/ontio/ontology-crypto/ec"
 
 	"golang.org/x/crypto/ed25519"
@@ -80,6 +81,10 @@ func (this publicKeyList) Less(i, j int) bool {
 	case PK_EDDSA:
 		va := a.(ed25519.PublicKey)
 		vb := b.(ed25519.PublicKey)
+		return bytes.Compare(va, vb) < 0
+	case PK_BN256:
+		va := a.(abls.PublicKey)
+		vb := b.(abls.PublicKey)
 		return bytes.Compare(va, vb) < 0
 	default:
 		panic("error key type")

@@ -30,6 +30,7 @@ import (
 	// the following blank imports ensures these packages are linked
 	_ "crypto/sha256"
 	_ "crypto/sha512"
+
 	_ "golang.org/x/crypto/ripemd160"
 	_ "golang.org/x/crypto/sha3"
 )
@@ -50,6 +51,8 @@ const (
 	SM3withSM2
 
 	SHA512withEDDSA
+
+	SOLOBLS
 )
 
 var names []string = []string{
@@ -64,6 +67,7 @@ var names []string = []string{
 	"RIPEMD160withECDSA",
 	"SM3withSM2",
 	"SHA512withEdDSA",
+	"SOLOBLS",
 }
 
 func (s SignatureScheme) Name() string {
@@ -107,6 +111,8 @@ func GetHash(scheme SignatureScheme) hash.Hash {
 		return sm3.New()
 	case SHA512withEDDSA:
 		return crypto.SHA512.New()
+	case SOLOBLS:
+		return crypto.SHA256.New()
 	}
 	return nil
 }

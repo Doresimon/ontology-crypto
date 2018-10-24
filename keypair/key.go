@@ -38,6 +38,7 @@ import (
 	"reflect"
 
 	base58 "github.com/itchyny/base58-go"
+	"github.com/ontio/ontology-crypto/abls"
 	"github.com/ontio/ontology-crypto/ec"
 
 	"golang.org/x/crypto/ed25519"
@@ -60,6 +61,8 @@ const (
 
 	PK_P256_E KeyType = 0x02
 	PK_P256_O KeyType = 0x03
+
+	PK_BN256 KeyType = 0xff
 )
 
 const err_generate = "key pair generation failed, "
@@ -99,6 +102,18 @@ func GenerateKeyPair(t KeyType, opts interface{}) (PrivateKey, PublicKey, error)
 		} else {
 			return nil, nil, errors.New(err_generate + "unsupported EdDSA scheme")
 		}
+	case PK_BN256:
+		// param, ok := opts.(byte)
+		// if !ok {
+		// 	return nil, nil, errors.New(err_generate + "invalid EdDSA option")
+		// }
+
+		// if param == ED25519 {
+		_, _, pri, pub := abls.KeyGenerate()
+		return pri, pub, nil
+		// } else {
+		// return nil, nil, errors.New(err_generate + "unsupported EdDSA scheme")
+		// }
 	default:
 		return nil, nil, errors.New(err_generate + "unknown algorithm")
 	}
@@ -117,6 +132,8 @@ func GetKeyType(p PublicKey) KeyType {
 		}
 	case ed25519.PublicKey:
 		return PK_EDDSA
+	case abls.PublicKey:
+		return PK_BN256
 	default:
 		panic("unknown public key type")
 	}
@@ -169,6 +186,10 @@ func SerializePublicKey(key PublicKey) []byte {
 	case ed25519.PublicKey:
 		buf.WriteByte(byte(PK_EDDSA))
 		buf.WriteByte(ED25519)
+		buf.Write([]byte(t))
+	case abls.PublicKey:
+		buf.WriteByte(byte(PK_BN256))
+		buf.WriteByte(byte(PK_BN256))
 		buf.Write([]byte(t))
 	default:
 		panic("unknown public key type")
@@ -227,7 +248,11 @@ func DeserializePublicKey(data []byte) (PublicKey, error) {
 			PublicKey: pub,
 		}
 		return pk, nil
+	case PK_BN256:
+		pk := make([]byte, len(data)-2)
+		copy(pk, data[2:])
 
+		return abls.PublicKey(pk), nil
 	default:
 		return nil, errors.New("deserializing public key failed: unrecognized algorithm label")
 	}
@@ -281,6 +306,10 @@ func SerializePrivateKey(pri PrivateKey) []byte {
 	case ed25519.PrivateKey:
 		buf.WriteByte(byte(PK_EDDSA))
 		buf.WriteByte(byte(ED25519))
+		buf.Write(t)
+	case abls.PrivateKey:
+		buf.WriteByte(byte(PK_BN256))
+		buf.WriteByte(byte(PK_BN256))
 		buf.Write(t)
 	default:
 		panic("unkown private key type")
@@ -337,6 +366,9 @@ func DeserializePrivateKey(data []byte) (pri PrivateKey, err error) {
 			err = errors.New("deserializing private key failed: unknown EdDSA curve type")
 			return
 		}
+
+	case PK_BN256:
+		pri = ed25519.PrivateKey(data[2:])
 	}
 	return
 }
@@ -356,6 +388,11 @@ func ComparePublicKey(k0, k1 PublicKey) bool {
 
 	case ed25519.PublicKey:
 		v1 := k1.(ed25519.PublicKey)
+		if bytes.Compare(v0, v1) == 0 {
+			return true
+		}
+	case abls.PublicKey:
+		v1 := k1.(abls.PublicKey)
 		if bytes.Compare(v0, v1) == 0 {
 			return true
 		}
