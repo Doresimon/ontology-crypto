@@ -27,6 +27,15 @@ func TestBls(t *testing.T) {
 	t.Logf("ook:\n %v\n", ook)
 	t.Logf("ok:\n %v\n", ok)
 }
+func BenchmarkBlsSign(b *testing.B) {
+	// key generation
+	sk, _, _, _ := KeyGenerate()
+	// signing
+	msg := "test message"
+	for i := 0; i < b.N; i++ {
+		Sign(sk, msg)
+	}
+}
 
 func TestBls2(t *testing.T) {
 	// key generation

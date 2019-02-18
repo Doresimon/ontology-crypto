@@ -46,12 +46,6 @@ func (priv PrivateKey) Sign(message []byte) (signature []byte, err error) {
 
 	sigBytes := sig.Marshal()
 
-	// rsig, _ := new(bn256.G1).Unmarshal(sigBytes)
-
-	// log.Infof("PrivateKey.Sign() AAAAAAAAAAAAAAAAAAA-sig: %s\n", sig)
-	// log.Infof("PrivateKey.Sign() AAAAAAAAAAAAAAAAAAA-sigBytes: %v\n", sigBytes)
-	// log.Infof("PrivateKey.Sign() AAAAAAAAAAAAAAAAAAA-reverse.sig: %s\n", rsig)
-
 	return sigBytes, nil
 }
 
@@ -60,10 +54,6 @@ func (priv PrivateKey) Sign(message []byte) (signature []byte, err error) {
 func (pub PublicKey) Verify(message, sigBytes []byte) bool {
 	sig, _ := new(bn256.G1).Unmarshal(sigBytes)
 	pk, _ := new(bn256.G2).Unmarshal(pub)
-
-	// log.Infof("PublicKey.Verify() AAAAAAAAAAAAAAAAAAA-sigBytes: %v\n", sigBytes)
-	// log.Infof("PublicKey.Verify() AAAAAAAAAAAAAAAAAAA-sig: %s\n", sig)
-
 	return Verify(pk, string(message), sig)
 }
 
@@ -145,6 +135,7 @@ func Aggregate(sigs []*bn256.G1) *bn256.G1 {
 func AVerify(asig *bn256.G1, msgs []string, pks []*bn256.G2) bool {
 	if len(msgs) != len(pks) {
 		fmt.Printf("messages and public keys have different quantity.")
+		log.Infof("messages and public keys have different quantity.")
 		return false
 	}
 	g2 := new(bn256.G2).ScalarBaseMult(big.NewInt(1))
