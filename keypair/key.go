@@ -103,17 +103,8 @@ func GenerateKeyPair(t KeyType, opts interface{}) (PrivateKey, PublicKey, error)
 			return nil, nil, errors.New(err_generate + "unsupported EdDSA scheme")
 		}
 	case PK_BN256:
-		// param, ok := opts.(byte)
-		// if !ok {
-		// 	return nil, nil, errors.New(err_generate + "invalid EdDSA option")
-		// }
-
-		// if param == ED25519 {
 		_, _, pri, pub := abls.KeyGenerate()
 		return pri, pub, nil
-		// } else {
-		// return nil, nil, errors.New(err_generate + "unsupported EdDSA scheme")
-		// }
 	default:
 		return nil, nil, errors.New(err_generate + "unknown algorithm")
 	}

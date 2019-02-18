@@ -112,10 +112,7 @@ func Sign(scheme SignatureScheme, pri crypto.PrivateKey, msg []byte, opt interfa
 		res.Value = ed25519.Sign(key, msg)
 
 	case abls.PrivateKey:
-		// if scheme != SHA512withEDDSA {
-		// 	err = errors.New("signing failed: unmatched signature scheme and private key")
-		// 	return
-		// }
+
 		res.Value, _ = key.Sign(msg)
 
 	default:
